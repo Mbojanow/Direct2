@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i <= 12; i++)
     {
-        //rt.executeStep();
+        rt.executeStep();
     }
 
     QApplication a(argc, argv);

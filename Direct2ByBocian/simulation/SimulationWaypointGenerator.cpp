@@ -34,6 +34,8 @@ Waypoint SimulationWaypointGenerator::generateArrivalWaypoint()
 
 Waypoint SimulationWaypointGenerator::generateGenericWaypoint(unsigned waypointIndex)
 {
+    // TODO: seems like mingw has an issue with std::random_device and it's not that random
+    // check if can do seeding somehow.
     static std::random_device randomDevice;
     static std::mt19937 randomGenerator(randomDevice());
     static std::uniform_real_distribution<> altitudeDistributionRange(
@@ -42,7 +44,6 @@ Waypoint SimulationWaypointGenerator::generateGenericWaypoint(unsigned waypointI
     static std::uniform_real_distribution<> axisDistributionRange(
                 AXIS_LOWER_BOUND_DIFF,
                 AXIS_UPPER_BOUND_DIFF);
-
 
     double xAxisValue = X_AXIS_MULTIPLIER * waypointIndex;
     double yAxisValue = xAxisValue + axisDistributionRange(randomGenerator);

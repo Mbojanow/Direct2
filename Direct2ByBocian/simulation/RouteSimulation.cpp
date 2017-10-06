@@ -46,7 +46,6 @@ void RouteSimulation::initRouteWaypoints()
                 SimulationWaypointGenerator::generate(DEPARTURE_WAYPOINT_INDEX));
 
     planeBoard->getToReachWaypoints()->clear();
-    planeBoard->getToReachWaypoints()->reserve(MAX_WAYPOINT_INDEX);
     for (unsigned waypointIndex = 1; waypointIndex <= MAX_WAYPOINT_INDEX; waypointIndex++)
     {
         planeBoard->getToReachWaypoints()->push_back(
@@ -69,7 +68,6 @@ void RouteSimulation::initPlanePosition()
 void RouteSimulation::initVisitedPoints()
 {
     planeBoard->getVisitedPoints()->clear();
-    planeBoard->getVisitedPoints()->reserve(2 * PlaneBoard::BOARD_SIZE);
     planeBoard->getVisitedPoints()->push_back(SimulationWaypointGenerator::generate(DEPARTURE_WAYPOINT_INDEX));
 }
 

@@ -1,5 +1,6 @@
 #include "Waypoint.h"
 #include <cmath>
+#include <algorithm>
 
 // not sure why but abs from cmath does not work well with mingw 5 on win10
 double getAbsValue(double value)
@@ -55,7 +56,8 @@ double Waypoint::getAxisAbsDiff(const Axis &axisType, const Waypoint &pointA, co
 
     if (axisType == Axis::Z)
     {
-        return getAbsValue(pointA.getAltitude() - pointB.getAltitude());
+        return std::max(pointA.getAltitude(), pointB.getAltitude())
+                - std::min(pointA.getAltitude(), pointB.getAltitude());
     }
 
     throw std::runtime_error("Unsupported axis type. Cannot compute difference.");

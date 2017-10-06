@@ -27,12 +27,12 @@ public:
     void generateFlightPlanAlternative();
     void acceptFlightPlanAlternative();
     void rejectFlightPlanAlternative();
-
+    void executeStep();
 private:
     void initRouteWaypoints();
     void initPlanePosition();
     void initVisitedPoints();
     void setNextWaypointRoutePoints(const Waypoint *const fromPosition);
-    void executeStep();
+
     Waypoint *getLastVisitedWaypoint() const;
 };

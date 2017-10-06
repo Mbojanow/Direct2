@@ -1,7 +1,3 @@
-#include <vector>
-#include <algorithm>
-#include <iostream>
-
 #include <QtWidgets>
 
 #include "MainWindow.h"

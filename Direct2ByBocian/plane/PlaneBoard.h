@@ -1,10 +1,12 @@
 #pragma once
 
-#include <vector>
+#include <deque>
 #include <memory>
 
 #include "Waypoint.h"
 #include "Plane.h"
+
+typedef std::shared_ptr<std::deque<Waypoint>> WaypointsDequePtr;
 
 class PlaneBoard
 {
@@ -14,12 +16,10 @@ public:
 private:
     PlaneBoard();
     std::shared_ptr<Plane> plane;
-    // TODO: consider typedefs here
-    std::shared_ptr<std::vector<Waypoint>> waypointsReached;
-    std::shared_ptr<std::vector<Waypoint>> waypointsToReach;
-
-    std::shared_ptr<std::vector<Waypoint>> pointsVisited;
-    std::shared_ptr<std::vector<Waypoint>> pointsToNextWaypoint;
+    WaypointsDequePtr waypointsReached;
+    WaypointsDequePtr waypointsToReach;
+    WaypointsDequePtr pointsVisited;
+    WaypointsDequePtr pointsToNextWaypoint;
 
 public:
     PlaneBoard(PlaneBoard const&) = delete;
@@ -30,8 +30,8 @@ public:
     static std::shared_ptr<PlaneBoard> instance();
 
     std::shared_ptr<Plane> getPlane() const;
-    std::shared_ptr<std::vector<Waypoint>> getReachedWaypoints() const;
-    std::shared_ptr<std::vector<Waypoint>> getToReachWaypoints() const;
-    std::shared_ptr<std::vector<Waypoint>> getVisitedPoints() const;
-    std::shared_ptr<std::vector<Waypoint>> getNextWaypointPoints() const;
+    std::shared_ptr<std::deque<Waypoint>> getReachedWaypoints() const;
+    std::shared_ptr<std::deque<Waypoint>> getToReachWaypoints() const;
+    std::shared_ptr<std::deque<Waypoint>> getVisitedPoints() const;
+    std::shared_ptr<std::deque<Waypoint>> getNextWaypointPoints() const;
 };
