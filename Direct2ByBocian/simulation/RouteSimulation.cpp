@@ -48,7 +48,6 @@ void RouteSimulation::start()
                     "Failed to start simulation because of incorrect initalization. No flight plan found!");
     }
     simulationThread = std::make_shared<std::thread>(std::thread(&RouteSimulation::run, this));
-    simulationThread->join();
 }
 
 void RouteSimulation::pause()
