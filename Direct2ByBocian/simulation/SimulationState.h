@@ -6,6 +6,7 @@
 class SimulationState
 {
 private:
+    int simulationExecutionTime;
     int simulationStepSleepTime;
     bool paused;
     bool finished;
@@ -14,10 +15,13 @@ private:
 public:
     SimulationState();
 
+    int getSimulationExecutionTime();
     int getSimulationStepSleepTime();
     bool isPaused();
     bool isFinished();
 
+    void incrementSimulationExecutionTime();
+    void resetSimulationTimer();
     void setSimulationStepSleepTime(const SimulationSpeed &simulationSpeed);
     void setPauseState(bool isPaused);
     void setFinishedState(bool isFinished);

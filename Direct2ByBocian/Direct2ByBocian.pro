@@ -45,7 +45,8 @@ HEADERS += \
     simulation/SimulationWaypointGenerator.h \
     simulation/SimulationConstants.h \
     plane/Axis.h \
-    simulation/SimulationState.h
+    simulation/SimulationState.h \
+    simulation/SimulationInitalizationException.h
 
 SUBDIRS += \
     Direct2ByBocian.pro

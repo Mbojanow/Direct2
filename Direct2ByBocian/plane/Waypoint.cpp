@@ -1,6 +1,8 @@
 #include "Waypoint.h"
 #include <cmath>
 #include <algorithm>
+#include <random>
+
 
 // not sure why but abs from cmath does not work well with mingw 5 on win10
 double getAbsValue(double value)
@@ -13,6 +15,7 @@ Waypoint::Waypoint()
     xoyPosition = std::make_pair(0, 0);
     altitude = 0;
     mandatory = DEFAULT_MANDATORY_POLICY;
+    label = Waypoint::generateLabel();
 }
 
 Waypoint::Waypoint(const std::pair<double, double> &xoyPosition, unsigned altitude)
@@ -20,6 +23,7 @@ Waypoint::Waypoint(const std::pair<double, double> &xoyPosition, unsigned altitu
     this->xoyPosition = xoyPosition;
     this->altitude = altitude;
     this->mandatory = DEFAULT_MANDATORY_POLICY;
+    label = Waypoint::generateLabel();
 }
 
 std::pair<double, double> Waypoint::getXOYPosition() const
@@ -35,6 +39,11 @@ unsigned Waypoint::getAltitude() const
 bool Waypoint::isMandatory() const
 {
     return mandatory;
+}
+
+std::string Waypoint::getLabel() const
+{
+    return label;
 }
 
 void Waypoint::setMandatory(bool mandatory)
@@ -77,10 +86,26 @@ double Waypoint::getDistanceBetween(const Waypoint &pointA, const Waypoint &poin
     return sqrt(xAxisDiff * xAxisDiff + yAxisDiff * yAxisDiff);
 }
 
+std::string Waypoint::generateLabel()
+{
+    static std::random_device randomDevice;
+    // DAMN YOU MINGW and you deterministric random_device implementation...
+    static std::mt19937 randomGenerator(randomDevice());
+    static std::uniform_real_distribution<> charRange('A', 'Z');
+    std::string label;
+
+    for (int charIndex = 0 ; charIndex < Waypoint::LABEL_LEN; charIndex++)
+    {
+        label += charRange(randomGenerator);
+    }
+    return label;
+}
+
 std::ostream &operator<<(std::ostream &os, const Waypoint &obj)
 {
     return os << "*** Waypoint ***\n"
               << "x = " << obj.xoyPosition.first
               << "\ny = " << obj.xoyPosition.second
-              << "\naltitude = " << obj.altitude << "\n";
+              << "\naltitude = " << obj.altitude
+              << "\n";
 }

@@ -1,6 +1,7 @@
 #include "RouteSimulation.h"
 #include "SimulationWaypointGenerator.h"
 #include "SimulationConstants.h"
+#include "SimulationInitalizationException.h"
 
 #include <cmath>
 #include <iostream>
@@ -12,36 +13,83 @@
 RouteSimulation::RouteSimulation()
 {
     planeBoard = PlaneBoard::instance();
-    simulationState = std::make_unique<SimulationState>();
+    simulationState = std::make_shared<SimulationState>();
+    finishCleaning = false;
+    simulationThreadJoiner = std::make_shared<std::thread>(std::thread(&RouteSimulation::cleanSimulationThreads, this));
 }
 
-void RouteSimulation::init()
+RouteSimulation::~RouteSimulation()
 {
-    LOG << "Initializing simulation.\n" << std::flush;
+    finishCleaning = true;
+    if (simulationThreadJoiner && simulationThreadJoiner->joinable())
+    {
+        simulationThreadJoiner->join();
+    }
+}
+
+WaypointsDequePtr RouteSimulation::generateFlightPlan()
+{
+    LOG << "Initializing simulation. Generating flight plan\n" << std::flush;
     simulationState->setFinishedState(false);
     simulationState->setPauseState(false);
     initRouteWaypoints();
     initPlanePosition();
     initVisitedPoints();
-    setNextWaypointRoutePoints(getLastVisitedWaypoint());
     LOG << "Simulation initialization finished.\n" << std::flush;
+    return planeBoard->getToReachWaypoints();
 }
 
 void RouteSimulation::start()
 {
     LOG << "Starting simulation\n" << std::flush;
-    init();
-    std::shared_ptr<std::thread> simulationThread = std::make_shared<std::thread>(std::thread(&RouteSimulation::run, this));
-
+    if (planeBoard->getToReachWaypoints()->empty())
+    {
+        throw SimulationInitializationException(
+                    "Failed to start simulation because of incorrect initalization. No flight plan found!");
+    }
+    simulationThread = std::make_shared<std::thread>(std::thread(&RouteSimulation::run, this));
     simulationThread->join();
 }
 
+void RouteSimulation::pause()
+{
+    LOG << "Pausing simulation\n";
+    simulationState->setPauseState(true);
+}
+
+void RouteSimulation::unpause()
+{
+    LOG << "Unpausing simulation\n";
+    simulationState->setPauseState(false);
+}
+
+void RouteSimulation::reset()
+{
+    simulationState->setFinishedState(false);
+    simulationState->setPauseState(false);
+    simulationState->resetSimulationTimer();
+    planeBoard->getNextWaypointPoints()->clear();
+    planeBoard->getReachedWaypoints()->clear();
+    planeBoard->getToReachWaypoints()->clear();
+    planeBoard->getVisitedPoints()->clear();
+}
+
+void RouteSimulation::changeSpeed(const SimulationSpeed &simulationSpeed)
+{
+    simulationState->setSimulationStepSleepTime(simulationSpeed);
+}
+
+//
+// private methods
+//
 void RouteSimulation::run()
 {
+    setNextWaypointRoutePoints(getLastVisitedWaypoint());
     while (!simulationState->isFinished())
     {
         executeStep();
-        //sleepTillNextStep();
+        sleepTillNextStep();
+        simulationState->incrementSimulationExecutionTime();
         while(simulationState->isPaused())
         {
             // Sleep for short amount of time to lower cpu work
@@ -51,9 +99,6 @@ void RouteSimulation::run()
     }
 }
 
-//
-// private methods
-//
 void RouteSimulation::initRouteWaypoints()
 {
     planeBoard->getReachedWaypoints()->clear();
@@ -114,7 +159,7 @@ void RouteSimulation::setNextWaypointRoutePoints(const Waypoint *const fromPosit
                 + previousPoint->getXOYPosition().second;
         unsigned altitudePointPos = previousPoint->getAltitude() + interpolatedAltitudeDiffBetweenPoints;
 
-        // interpolation rounding errors -> this is because it was decided to use naturals as altitude
+        // fix interpolation rounding errors -> this is because it was decided to use naturals as altitude
         if (altitudePointPos > fromPosition->getAltitude() && altitudePointPos > nextWaypoint->getAltitude())
         {
             altitudePointPos = 0;
@@ -169,9 +214,8 @@ void RouteSimulation::executeStep()
         if (planeBoard->getToReachWaypoints()->empty())
         {
             simulationState->setFinishedState(true);
-            //simulationState->setPauseState(true);
+            simulationState->resetSimulationTimer();
             LOG << "Plane landed successfully! Destination reached!\n" << std::flush;
-            // TODO: signal that simulation ended;
         }
         else
         {
@@ -185,13 +229,17 @@ void RouteSimulation::sleepTillNextStep() const
     std::this_thread::sleep_for(std::chrono::milliseconds(simulationState->getSimulationStepSleepTime()));
 }
 
-/*
-void start();
-void pause();
-void reset();
-void generateFlightPlan();
-void changeSpeed(const SimulationSpeed &simulationSpeed);
-
-void generateFlightPlanAlternative();
-void acceptFlightPlanAlternative();
-void rejectFlightPlanAlternative();*/
+void RouteSimulation::cleanSimulationThreads()
+{
+    while (!finishCleaning)
+    {
+        if (simulationThread && simulationThread->joinable())
+        {
+            simulationThread->join();
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+}

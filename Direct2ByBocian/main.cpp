@@ -11,7 +11,13 @@ int main(int argc, char *argv[])
 {
     RouteSimulation rt = RouteSimulation();
 
+    rt.generateFlightPlan();
     rt.start();
+
+    Sleep(15000);
+    rt.pause();
+    Sleep(5000);
+    rt.unpause();
 
     QApplication a(argc, argv);
     MainWindow w;

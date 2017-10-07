@@ -7,6 +7,13 @@ SimulationState::SimulationState()
     paused = false;
     finished = false;
     setSimulationStepSleepTime(SimulationSpeed::NORMAL);
+    simulationExecutionTime = 0;
+}
+
+int SimulationState::getSimulationExecutionTime()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    return simulationExecutionTime;
 }
 
 int SimulationState::getSimulationStepSleepTime()
@@ -25,6 +32,18 @@ bool SimulationState::isFinished()
 {
     std::lock_guard<std::mutex> lock(mtx);
     return finished;
+}
+
+void SimulationState::incrementSimulationExecutionTime()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    ++simulationExecutionTime;
+}
+
+void SimulationState::resetSimulationTimer()
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    simulationExecutionTime = 0;
 }
 
 void SimulationState::setSimulationStepSleepTime(const SimulationSpeed &simulationSpeed)
