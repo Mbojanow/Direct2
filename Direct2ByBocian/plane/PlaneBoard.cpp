@@ -8,6 +8,7 @@ PlaneBoard::PlaneBoard()
     waypointsToReach = std::make_shared<std::deque<Waypoint>>(0);
     pointsVisited = std::make_shared<std::deque<Waypoint>>(0);
     pointsToNextWaypoint = std::make_shared<std::deque<Waypoint>>(0);
+    alternativeWaypointsToReach = std::make_shared<std::deque<Waypoint>>(0);
 }
 
 std::shared_ptr<PlaneBoard> PlaneBoard::instance()
@@ -39,4 +40,9 @@ WaypointsDequePtr PlaneBoard::getVisitedPoints() const
 WaypointsDequePtr PlaneBoard::getNextWaypointPoints() const
 {
     return pointsToNextWaypoint;
+}
+
+WaypointsDequePtr PlaneBoard::getAlternativeWaypointsToReach() const
+{
+    return alternativeWaypointsToReach;
 }

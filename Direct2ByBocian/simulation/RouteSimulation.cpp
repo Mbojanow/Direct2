@@ -52,13 +52,13 @@ void RouteSimulation::start()
 
 void RouteSimulation::pause()
 {
-    LOG << "Pausing simulation\n";
+    LOG << "Pausing simulation\n" << std::flush;
     simulationState->setPauseState(true);
 }
 
 void RouteSimulation::unpause()
 {
-    LOG << "Unpausing simulation\n";
+    LOG << "Unpausing simulation\n" << std::flush;
     simulationState->setPauseState(false);
 }
 
@@ -71,6 +71,7 @@ void RouteSimulation::reset()
     planeBoard->getReachedWaypoints()->clear();
     planeBoard->getToReachWaypoints()->clear();
     planeBoard->getVisitedPoints()->clear();
+    planeBoard->getAlternativeWaypointsToReach()->clear();
 }
 
 void RouteSimulation::changeSpeed(const SimulationSpeed &simulationSpeed)
@@ -78,11 +79,69 @@ void RouteSimulation::changeSpeed(const SimulationSpeed &simulationSpeed)
     simulationState->setSimulationStepSleepTime(simulationSpeed);
 }
 
+WaypointsDequePtr RouteSimulation::generateFlightPlanAlternative()
+{
+    LOG << "Generating flight plan alternative\n" << std::flush;
+    planeBoard->getAlternativeWaypointsToReach()->clear();
+    std::copy_if(planeBoard->getToReachWaypoints()->begin(),
+              planeBoard->getToReachWaypoints()->end(),
+              std::back_inserter(*planeBoard->getAlternativeWaypointsToReach()),
+                 [](Waypoint &)
+    {
+        return ((std::rand() % 100 + 1.0 / 100.0) > NON_MANDATORY_PROBABILITY);
+    });
+    // Drawing alternative route logic will
+    // (or already is if I forgot about this comment) be in GUI part.
+    return planeBoard->getAlternativeWaypointsToReach();
+}
+
+void RouteSimulation::acceptFlightPlanAlternative()
+{
+    if (planeBoard->getAlternativeWaypointsToReach()->empty())
+    {
+        throw std::runtime_error("Unable to accept alternative flight plan because there is none!");
+    }
+
+
+
+    // Tricky part. If during plan generation and accepting, plane reached waypoint we need to remove it from
+    // the alternative points route
+    //std::lock_guard lock(mtx);
+    int numWaypointsToRemove = 0;
+    for (auto &alternativeWaypoint : *planeBoard->getAlternativeWaypointsToReach())
+    {
+        if (std::find(planeBoard->getToReachWaypoints()->begin(),
+                      planeBoard->getToReachWaypoints()->end(),
+                      alternativeWaypoint) != planeBoard->getToReachWaypoints()->end())
+        {
+            numWaypointsToRemove++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    for (int waypointToRemoveIndex = 0; waypointToRemoveIndex < numWaypointsToRemove; waypointToRemoveIndex++)
+    {
+        planeBoard->getAlternativeWaypointsToReach()->pop_front();
+    }
+    planeBoard->getToReachWaypoints() = planeBoard->getAlternativeWaypointsToReach();
+    // TODO: Need to generate planeBoard->getNextWaypointPoints() if first waypoint changed
+    LOG << "Alternative flight plan accepted\n" << std::flush;
+}
+
+void RouteSimulation::rejectFlightPlanAlternative()
+{
+    planeBoard->getAlternativeWaypointsToReach()->clear();
+}
+
 //
 // private methods
 //
 void RouteSimulation::run()
 {
+    planeBoard->getAlternativeWaypointsToReach()->clear();
     setNextWaypointRoutePoints(getLastVisitedWaypoint());
     while (!simulationState->isFinished())
     {
@@ -188,13 +247,14 @@ Waypoint *RouteSimulation::getLastVisitedWaypoint() const
 
 void RouteSimulation::executeStep()
 {
+    //std::lock_guard lock(mtx);
     planeBoard->getVisitedPoints()->push_back(planeBoard->getPlane()->getPosition());
 
     Waypoint *nextRoutePoint = &planeBoard->getNextWaypointPoints()->at(0);
     planeBoard->getPlane()->setPosition(*nextRoutePoint);
     LOG << "Plane moved to:\n" << *nextRoutePoint << std::endl << std::flush;
 
-    planeBoard->getNextWaypointPoints()->erase(planeBoard->getNextWaypointPoints()->begin());
+    planeBoard->getNextWaypointPoints()->pop_front();
 
     // reached last point just next to next waypoint -> snap plane to exact waypoint position
     if (planeBoard->getNextWaypointPoints()->empty())
@@ -205,7 +265,7 @@ void RouteSimulation::executeStep()
         planeBoard->getPlane()->setPosition(*currentWaypoint);
 
         planeBoard->getReachedWaypoints()->push_back(planeBoard->getToReachWaypoints()->at(0));
-        planeBoard->getToReachWaypoints()->erase(planeBoard->getToReachWaypoints()->begin());
+        planeBoard->getToReachWaypoints()->pop_front();
 
         LOG << "Waypoint reached! Plane moved to:\n" << planeBoard->getPlane()->getPosition()
             << std::endl << std::flush;

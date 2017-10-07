@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <thread>
+#include <mutex>
 
 class RouteSimulation
 {
@@ -16,6 +17,7 @@ private:
     bool finishCleaning;
     std::shared_ptr<std::thread> simulationThread;
     std::shared_ptr<std::thread> simulationThreadJoiner;
+    //std::mutex *mtx = new std::mutex;
 
 public:
     RouteSimulation();
@@ -28,7 +30,7 @@ public:
     void reset();
     void changeSpeed(const SimulationSpeed &simulationSpeed);
 
-    void generateFlightPlanAlternative();
+    WaypointsDequePtr generateFlightPlanAlternative();
     void acceptFlightPlanAlternative();
     void rejectFlightPlanAlternative();
 

@@ -24,13 +24,13 @@ public:
     unsigned getAltitude() const;
     bool isMandatory() const;
     std::string getLabel() const;
-
     void setMandatory(bool mandatory);
 
     static double getSlopeAngle(const Waypoint &pointA, const Waypoint &pointB);
     static double getDistanceBetween(const Waypoint &pointA, const Waypoint &pointB);
     static double getAxisAbsDiff(const Axis &axisType, const Waypoint &pointA, const Waypoint &pointB);
 
+    friend bool operator==(const Waypoint &lhs, const Waypoint &rhs);
     friend std::ostream &operator<<(std::ostream &os, const Waypoint &obj);
 
 private:

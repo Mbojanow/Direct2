@@ -101,6 +101,14 @@ std::string Waypoint::generateLabel()
     return label;
 }
 
+bool operator==(const Waypoint &lhs, const Waypoint &rhs)
+{
+    if (lhs.xoyPosition != rhs.xoyPosition) return false;
+    if (lhs.altitude != rhs.altitude) return false;
+    if (lhs.label != rhs.label) return false;
+    return true;
+}
+
 std::ostream &operator<<(std::ostream &os, const Waypoint &obj)
 {
     return os << "*** Waypoint ***\n"

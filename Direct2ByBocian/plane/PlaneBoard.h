@@ -18,6 +18,7 @@ private:
     std::shared_ptr<Plane> plane;
     WaypointsDequePtr waypointsReached;
     WaypointsDequePtr waypointsToReach;
+    WaypointsDequePtr alternativeWaypointsToReach;
     WaypointsDequePtr pointsVisited;
     WaypointsDequePtr pointsToNextWaypoint;
 
@@ -30,8 +31,9 @@ public:
     static std::shared_ptr<PlaneBoard> instance();
 
     std::shared_ptr<Plane> getPlane() const;
-    std::shared_ptr<std::deque<Waypoint>> getReachedWaypoints() const;
-    std::shared_ptr<std::deque<Waypoint>> getToReachWaypoints() const;
-    std::shared_ptr<std::deque<Waypoint>> getVisitedPoints() const;
-    std::shared_ptr<std::deque<Waypoint>> getNextWaypointPoints() const;
+    WaypointsDequePtr getReachedWaypoints() const;
+    WaypointsDequePtr getToReachWaypoints() const;
+    WaypointsDequePtr getVisitedPoints() const;
+    WaypointsDequePtr getNextWaypointPoints() const;
+    WaypointsDequePtr getAlternativeWaypointsToReach() const;
 };
