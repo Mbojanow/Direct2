@@ -1,11 +1,14 @@
 #pragma once
 #include <QtWidgets>
 #include <QString>
+#include <QGraphicsItem>
 
 #include "plane/PlaneBoard.h"
 
-class MainWindowLayout
+class MainWindowLayout : public QObject
 {
+    Q_OBJECT
+
 private:
     static const int GRID_SIZE_MULTIPLIER = 5;
     static const int GRID_SIDE_SIZE = GRID_SIZE_MULTIPLIER * PlaneBoard::BOARD_SIZE;
@@ -27,12 +30,14 @@ private:
     QVBoxLayout *rightWindowSideLayout;
 
 public:
-
-
     MainWindowLayout();
     ~MainWindowLayout();
 
     QWidget *getMainWidget() const;
+
+private slots:
+    void handleButton();
+    void handleButton2();
 
 private:
     void initWidgets();

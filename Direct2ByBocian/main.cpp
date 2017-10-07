@@ -10,12 +10,8 @@
 int main(int argc, char *argv[])
 {
     RouteSimulation rt = RouteSimulation();
-    rt.init();
 
-    for (int i = 0; i <= 12; i++)
-    {
-        rt.executeStep();
-    }
+    rt.start();
 
     QApplication a(argc, argv);
     MainWindow w;

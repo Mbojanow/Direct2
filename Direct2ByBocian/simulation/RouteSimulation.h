@@ -2,6 +2,7 @@
 
 #include "plane/PlaneBoard.h"
 #include "SimulationSpeed.h"
+#include "SimulationState.h"
 
 #include <memory>
 
@@ -9,17 +10,16 @@ class RouteSimulation
 {
 private:
     std::shared_ptr<PlaneBoard> planeBoard;
-
-    SimulationSpeed simulationSpeed;
-    bool isActive;
-    bool isFinished;
+    std::unique_ptr<SimulationState> simulationState;
 
 public:
     RouteSimulation();
 
     void init();
     void start();
+    void run();
     void pause();
+    void unpause();
     void reset();
     void generateFlightPlan();
     void changeSpeed(const SimulationSpeed &simulationSpeed);
@@ -27,12 +27,14 @@ public:
     void generateFlightPlanAlternative();
     void acceptFlightPlanAlternative();
     void rejectFlightPlanAlternative();
-    void executeStep();
+
 private:
     void initRouteWaypoints();
     void initPlanePosition();
     void initVisitedPoints();
     void setNextWaypointRoutePoints(const Waypoint *const fromPosition);
+    void executeStep();
 
+    void sleepTillNextStep() const;
     Waypoint *getLastVisitedWaypoint() const;
 };

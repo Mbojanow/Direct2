@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-
+CONFIG += c++14
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Direct2ByBocian
@@ -31,7 +31,8 @@ SOURCES += \
     plane/Waypoint.cpp \
     plane/Plane.cpp \
     simulation/RouteSimulation.cpp \
-    simulation/SimulationWaypointGenerator.cpp
+    simulation/SimulationWaypointGenerator.cpp \
+    simulation/SimulationState.cpp
 
 HEADERS += \
     ui/MainWindowLayout.h \
@@ -43,7 +44,8 @@ HEADERS += \
     simulation/SimulationSpeed.h \
     simulation/SimulationWaypointGenerator.h \
     simulation/SimulationConstants.h \
-    plane/Axis.h
+    plane/Axis.h \
+    simulation/SimulationState.h
 
 SUBDIRS += \
     Direct2ByBocian.pro

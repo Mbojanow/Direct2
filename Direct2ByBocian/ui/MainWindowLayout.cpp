@@ -4,10 +4,24 @@
 
 constexpr QSize MainWindowLayout::COMMON_BUTTON_SIZE;
 
-MainWindowLayout::MainWindowLayout()
+MainWindowLayout::MainWindowLayout() : QObject()
 {
     initWidgets();
     setAppLayout();
+    connect(generateFlightPlanButton, SIGNAL (released()), this, SLOT (handleButton()));
+    connect(runSimulationButton, SIGNAL (released()), this, SLOT (handleButton2()));
+}
+
+void MainWindowLayout::handleButton()
+{
+    std::cout << "PLEASE!\n" << std::flush;
+    Sleep(5000);
+    std::cout << "DONE!\n" << std::flush;
+}
+
+void MainWindowLayout::handleButton2()
+{
+    std::cout << "HANDLE2!\n" << std::flush;
 }
 
 MainWindowLayout::~MainWindowLayout()

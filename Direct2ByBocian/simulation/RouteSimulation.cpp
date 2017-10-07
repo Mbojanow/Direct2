@@ -5,35 +5,50 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <thread>
 
-#define LOG std::cout << "\tLOG: "
+#define LOG std::cout << "LOG: "
 
 RouteSimulation::RouteSimulation()
 {
     planeBoard = PlaneBoard::instance();
-    simulationSpeed = SimulationSpeed::NORMAL;
-    isActive = false;
-    isFinished = false;
+    simulationState = std::make_unique<SimulationState>();
 }
 
 void RouteSimulation::init()
 {
     LOG << "Initializing simulation.\n" << std::flush;
-    isActive = false;
-    isFinished = false;
+    simulationState->setFinishedState(false);
+    simulationState->setPauseState(false);
     initRouteWaypoints();
     initPlanePosition();
     initVisitedPoints();
     setNextWaypointRoutePoints(getLastVisitedWaypoint());
-
     LOG << "Simulation initialization finished.\n" << std::flush;
 }
 
 void RouteSimulation::start()
 {
     LOG << "Starting simulation\n" << std::flush;
-    isActive = true;
     init();
+    std::shared_ptr<std::thread> simulationThread = std::make_shared<std::thread>(std::thread(&RouteSimulation::run, this));
+
+    simulationThread->join();
+}
+
+void RouteSimulation::run()
+{
+    while (!simulationState->isFinished())
+    {
+        executeStep();
+        //sleepTillNextStep();
+        while(simulationState->isPaused())
+        {
+            // Sleep for short amount of time to lower cpu work
+            // while simulation is paused.
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
 }
 
 //
@@ -84,6 +99,10 @@ void RouteSimulation::setNextWaypointRoutePoints(const Waypoint *const fromPosit
 
     double waypointAltitudeDiff = Waypoint::getAxisAbsDiff(Axis::Z, *fromPosition, *nextWaypoint);
     double interpolatedAltitudeDiffBetweenPoints = waypointAltitudeDiff / numPointsToGenerate;
+    if (nextWaypoint->getAltitude() < fromPosition->getAltitude())
+    {
+        interpolatedAltitudeDiffBetweenPoints = -interpolatedAltitudeDiffBetweenPoints;
+    }
 
     const Waypoint *previousPoint = fromPosition;
 
@@ -93,7 +112,13 @@ void RouteSimulation::setNextWaypointRoutePoints(const Waypoint *const fromPosit
                 + previousPoint->getXOYPosition().first;
         double yRoutePointPos = MOVE_DIST_PER_SIMULATION_UNIT * sin(moveDirectionAngle)
                 + previousPoint->getXOYPosition().second;
-        double altitudePointPos = previousPoint->getAltitude() + interpolatedAltitudeDiffBetweenPoints;
+        unsigned altitudePointPos = previousPoint->getAltitude() + interpolatedAltitudeDiffBetweenPoints;
+
+        // interpolation rounding errors -> this is because it was decided to use naturals as altitude
+        if (altitudePointPos > fromPosition->getAltitude() && altitudePointPos > nextWaypoint->getAltitude())
+        {
+            altitudePointPos = 0;
+        }
 
         planeBoard->getNextWaypointPoints()->push_back(
                     Waypoint(std::make_pair(xRoutePointPos, yRoutePointPos), altitudePointPos));
@@ -143,8 +168,8 @@ void RouteSimulation::executeStep()
 
         if (planeBoard->getToReachWaypoints()->empty())
         {
-            isFinished = true;
-            isActive = false;
+            simulationState->setFinishedState(true);
+            //simulationState->setPauseState(true);
             LOG << "Plane landed successfully! Destination reached!\n" << std::flush;
             // TODO: signal that simulation ended;
         }
@@ -153,7 +178,11 @@ void RouteSimulation::executeStep()
             setNextWaypointRoutePoints(getLastVisitedWaypoint());
         }
     }
+}
 
+void RouteSimulation::sleepTillNextStep() const
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(simulationState->getSimulationStepSleepTime()));
 }
 
 /*
