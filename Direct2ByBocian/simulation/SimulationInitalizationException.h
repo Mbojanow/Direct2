@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 
+/*
+ * SimulationInitializationException declaration and implementation.
+ */
 class SimulationInitializationException : public std::runtime_error
 {
 public:

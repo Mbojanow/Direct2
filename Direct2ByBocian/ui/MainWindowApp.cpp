@@ -16,8 +16,6 @@ void MainWindowApp::handleGenerateFlightPlan()
 {
     routeSimulation->generateFlightPlan();
     runSimulationButton->setEnabled(true);
-
-
 }
 
 void MainWindowApp::handleRunSimulation()
@@ -48,8 +46,8 @@ void MainWindowApp::handleSubmitFlightPlanAlternative()
     auto alternativeFlightPlanInfo = routeSimulation->generateFlightPlanAlternative();
     if (alternativeFlightPlanInfo.second)
     {
-        // TODO: no waypoints removed -> add label and
-        // additional info that flight plan has not been changed
+        // no waypoints removed
+        alternativePlanInfoLabel->setText("Flight plan has not been modified");
     }
     else
     {
@@ -57,6 +55,7 @@ void MainWindowApp::handleSubmitFlightPlanAlternative()
         alternativeFlightPlanButton->setEnabled(false);
         acceptAlternativePlanButton->setEnabled(true);
         rejectAlternativePlanButton->setEnabled(true);
+        alternativePlanInfoLabel->setText("");
         // TODO: draw alternative route here
     }
 }
@@ -77,6 +76,33 @@ void MainWindowApp::handleRejectFlightPlanAlternative()
     rejectAlternativePlanButton->setEnabled(false);
 }
 
+void MainWindowApp::handleDoubleSpeedChange(bool toggled)
+{
+    if (toggled)
+    {
+        routeSimulation->changeSpeed(SimulationSpeed::DOUBLE);
+        halfSpeedCheckBox->setEnabled(false);
+    }
+    else
+    {
+        routeSimulation->changeSpeed(SimulationSpeed::NORMAL);
+        halfSpeedCheckBox->setEnabled(true);
+    }
+}
+
+void MainWindowApp::handleHalfSpeedChange(bool toggled)
+{
+    if (toggled)
+    {
+        routeSimulation->changeSpeed(SimulationSpeed::HALF);
+        doubleSpeedCheckBox->setEnabled(false);
+    }
+    else
+    {
+        routeSimulation->changeSpeed(SimulationSpeed::NORMAL);
+        doubleSpeedCheckBox->setEnabled(true);
+    }
+}
 
 MainWindowApp::~MainWindowApp()
 {
@@ -118,6 +144,8 @@ void MainWindowApp::initButtons()
     alternativeFlightPlanButton = new QPushButton(mainWidget);
     initCommonPushButtonData(alternativeFlightPlanButton, "Submit flight plan alternative");
 
+    alternativePlanInfoLabel = new QLabel(mainWidget);
+
     acceptAlternativePlanButton = new QPushButton(mainWidget);
     initCommonPushButtonData(acceptAlternativePlanButton, "Accept plan alternative");
 
@@ -152,13 +180,14 @@ void MainWindowApp::initCommonPushButtonData(QPushButton *button, const QString 
 
 void MainWindowApp::setAppLayout()
 {
-    planeRouteMap->setText("TEST TEXT");
+    planeRouteMap->setText("ROUTE WILL BE DRAWN HERE");
     leftWindowSideLayout->addWidget(planeRouteMap);
 
     rightWindowSideLayout->addWidget(generateFlightPlanButton);
     rightWindowSideLayout->addWidget(runSimulationButton);
     rightWindowSideLayout->addWidget(pauseSimulationButton);
     rightWindowSideLayout->addWidget(alternativeFlightPlanButton);
+    rightWindowSideLayout->addWidget(alternativePlanInfoLabel);
     rightWindowSideLayout->addWidget(acceptAlternativePlanButton);
     rightWindowSideLayout->addWidget(rejectAlternativePlanButton);
     setRadioBoxesLayout();
@@ -190,6 +219,8 @@ void MainWindowApp::connectWidgets()
     connect(alternativeFlightPlanButton, SIGNAL (released()), this, SLOT (handleSubmitFlightPlanAlternative()));
     connect(acceptAlternativePlanButton, SIGNAL (released()), this, SLOT (handleAcceptFlightPlanAlternative()));
     connect(rejectAlternativePlanButton, SIGNAL (released()), this, SLOT (handleRejectFlightPlanAlternative()));
+    connect(doubleSpeedCheckBox, SIGNAL(toggled(bool)), this, SLOT(handleDoubleSpeedChange(bool)));
+    connect(halfSpeedCheckBox, SIGNAL(toggled(bool)), this, SLOT(handleHalfSpeedChange(bool)));
 }
 
 bool MainWindowApp::simulationStarted() const

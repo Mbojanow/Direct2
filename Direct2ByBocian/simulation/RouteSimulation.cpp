@@ -132,12 +132,13 @@ void RouteSimulation::acceptFlightPlanAlternative()
 
     Waypoint currentPlanePosition = planeBoard->getPlane()->getPosition();
     setNextWaypointRoutePoints(&currentPlanePosition);
-    LOG << "Alternative flight plan accepted\n" << std::flush;
+    LOG << "Alternative flight plan accepted.\n" << std::flush;
 }
 
 void RouteSimulation::rejectFlightPlanAlternative()
 {
     planeBoard->getAlternativeWaypointsToReach()->clear();
+    LOG << "Alternative flight plan rejected.\n" << std::flush;
 }
 
 int RouteSimulation::getElapsedTime() const

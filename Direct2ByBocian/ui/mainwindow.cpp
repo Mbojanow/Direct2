@@ -5,8 +5,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
-    setCentralWidget(mainLayout.getMainWidget());
-    setFixedSize(900, 550);
+    setCentralWidget(mainApp.getMainWidget());
+    setFixedSize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT);
 }
 
 MainWindow::~MainWindow()

@@ -6,8 +6,19 @@
 #include "Waypoint.h"
 #include "Plane.h"
 
+
 typedef std::shared_ptr<std::deque<Waypoint>> WaypointsDequePtr;
 
+/*
+ * PlaneBoard class declaration. PlaneBoard is a singleton.
+ * Board contains:
+ *  - plane position
+ *  - waypoints that need to be reached
+ *  - waypoints that have already been reached by the plane
+ *  - alternative waypoints to reach in case alternative route appears
+ *  - points visited by plane (in each simulation unit)
+ *  - points to next waypoint (route for each simulation unit till next endpoint is reached by the plane)
+ */
 class PlaneBoard
 {
 public:

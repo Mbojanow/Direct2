@@ -1,8 +1,14 @@
 #pragma once
 
 #include <utility>
+
 #include "Waypoint.h"
 
+/*
+ * Plane class declaration.
+ * Plane has a position in 3d space.
+ * It has XOY position as double and altitude in Z axis which is a natual number.
+ */
 class Plane
 {
 private:

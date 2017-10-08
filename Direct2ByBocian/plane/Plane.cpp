@@ -1,5 +1,6 @@
 #include "Plane.h"
 
+
 Plane::Plane()
 {
     xoyPosition = std::make_pair<double, double>(0, 0);

@@ -4,35 +4,35 @@
 
 #include <random>
 
-Waypoint SimulationWaypointGenerator::generateDepartureWaypoint()
+Waypoint SimulationWaypointGenerator::generateDeparture()
 {
     return Waypoint(std::make_pair(DEPARTURE_X,
                                    DEPARTURE_Y),
                     DEPARTURE_ALTITUDE);
 }
 
-Waypoint SimulationWaypointGenerator::generateTopOfClimbWaypoint()
+Waypoint SimulationWaypointGenerator::generateTopOfClimb()
 {
     return Waypoint(std::make_pair(TOP_OF_CLIMB_X,
                                    TOP_OF_CLIMB_Y),
                     TOP_OF_CLIMB_ALTITUDE);
 }
 
-Waypoint SimulationWaypointGenerator::generateTopOfDescentWaypoint()
+Waypoint SimulationWaypointGenerator::generateTopOfDescent()
 {
     return Waypoint(std::make_pair(TOP_OF_DESCENT_X,
                                    TOP_OF_DESCENT_Y),
                     TOP_OF_DESCENT_ALTITUDE);
 }
 
-Waypoint SimulationWaypointGenerator::generateArrivalWaypoint()
+Waypoint SimulationWaypointGenerator::generateArrival()
 {
     return Waypoint(std::make_pair(ARRIVAL_X,
                                    ARRIVAL_Y),
                     ARRIVAL_ALTITUDE);
 }
 
-Waypoint SimulationWaypointGenerator::generateGenericWaypoint(unsigned waypointIndex)
+Waypoint SimulationWaypointGenerator::generateGeneric(unsigned waypointIndex)
 {
     // TODO: seems like mingw has an issue with std::random_device and it's not that random
     // check if can do seeding somehow.
@@ -62,18 +62,18 @@ Waypoint SimulationWaypointGenerator::generate(unsigned waypointIndex)
     switch (waypointIndex)
     {
         case DEPARTURE_WAYPOINT_INDEX:
-            return generateDepartureWaypoint();
+            return generateDeparture();
             break;
         case TOP_OF_CLIMB_WAYPOINT_INDEX:
-            return generateTopOfClimbWaypoint();
+            return generateTopOfClimb();
             break;
         case TOP_OF_DESCENT_WAYPOINT_INDEX:
-            return generateTopOfDescentWaypoint();
+            return generateTopOfDescent();
             break;
         case ARRIVAL_WAPOINT_INDEX:
-            return generateArrivalWaypoint();
+            return generateArrival();
             break;
         default:
-            return generateGenericWaypoint(waypointIndex);;
+            return generateGeneric(waypointIndex);;
     }
 }
