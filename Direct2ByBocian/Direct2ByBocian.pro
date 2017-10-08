@@ -25,17 +25,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        ui/MainWindowLayout.cpp \
         ui/MainWindow.cpp \
         plane/PlaneBoard.cpp \
     plane/Waypoint.cpp \
     plane/Plane.cpp \
     simulation/RouteSimulation.cpp \
     simulation/SimulationWaypointGenerator.cpp \
-    simulation/SimulationState.cpp
+    simulation/SimulationState.cpp \
+    ui/MainWindowApp.cpp
 
 HEADERS += \
-    ui/MainWindowLayout.h \
     ui/MainWindow.h \
     plane/PlaneBoard.h \
     plane/Waypoint.h \
@@ -46,7 +45,8 @@ HEADERS += \
     simulation/SimulationConstants.h \
     plane/Axis.h \
     simulation/SimulationState.h \
-    simulation/SimulationInitalizationException.h
+    simulation/SimulationInitalizationException.h \
+    ui/MainWindowApp.h
 
 SUBDIRS += \
     Direct2ByBocian.pro

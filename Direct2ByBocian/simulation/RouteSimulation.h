@@ -17,7 +17,7 @@ private:
     bool finishCleaning;
     std::shared_ptr<std::thread> simulationThread;
     std::shared_ptr<std::thread> simulationThreadJoiner;
-    //std::mutex *mtx = new std::mutex;
+    std::shared_ptr<std::mutex> mtx;
 
 public:
     RouteSimulation();
@@ -30,9 +30,10 @@ public:
     void reset();
     void changeSpeed(const SimulationSpeed &simulationSpeed);
 
-    WaypointsDequePtr generateFlightPlanAlternative();
+    std::pair<WaypointsDequePtr, bool> generateFlightPlanAlternative();
     void acceptFlightPlanAlternative();
     void rejectFlightPlanAlternative();
+    int getElapsedTime() const;
 
 private:
     void run();
@@ -45,4 +46,6 @@ private:
     Waypoint *getLastVisitedWaypoint() const;
 
     void cleanSimulationThreads();
+
+    // TODO: add sigabort handler to terminate thread gracefully
 };

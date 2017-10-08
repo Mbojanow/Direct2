@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
-#include "MainWindowLayout.h"
+#include "MainWindowApp.h"
 
 class MainWindow : public QMainWindow
 {
@@ -12,5 +12,5 @@ public:
     ~MainWindow();
 
 private:
-    MainWindowLayout mainLayout;
+    MainWindowApp mainLayout;
 };

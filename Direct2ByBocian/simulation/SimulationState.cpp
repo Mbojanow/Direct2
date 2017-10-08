@@ -6,20 +6,20 @@ SimulationState::SimulationState()
 {
     paused = false;
     finished = false;
-    setSimulationStepSleepTime(SimulationSpeed::NORMAL);
-    simulationExecutionTime = 0;
+    setStepSleepTime(SimulationSpeed::NORMAL);
+    executionTime = 0;
 }
 
-int SimulationState::getSimulationExecutionTime()
+int SimulationState::getExecutionTime()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    return simulationExecutionTime;
+    return executionTime;
 }
 
-int SimulationState::getSimulationStepSleepTime()
+int SimulationState::getStepSleepTime()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    return simulationStepSleepTime;
+    return stepSleepTime;
 }
 
 bool SimulationState::isPaused()
@@ -34,31 +34,31 @@ bool SimulationState::isFinished()
     return finished;
 }
 
-void SimulationState::incrementSimulationExecutionTime()
+void SimulationState::incrementExecutionTime()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    ++simulationExecutionTime;
+    ++executionTime;
 }
 
-void SimulationState::resetSimulationTimer()
+void SimulationState::resetTimer()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    simulationExecutionTime = 0;
+    executionTime = 0;
 }
 
-void SimulationState::setSimulationStepSleepTime(const SimulationSpeed &simulationSpeed)
+void SimulationState::setStepSleepTime(const SimulationSpeed &simulationSpeed)
 {
     std::lock_guard<std::mutex> lock(mtx);
     switch(simulationSpeed)
     {
         case SimulationSpeed::HALF:
-            simulationStepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS * 2;
+            stepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS * 2;
             break;
         case SimulationSpeed::NORMAL:
-            simulationStepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS;
+            stepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS;
             break;
         case SimulationSpeed::DOUBLE:
-            simulationStepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS / 2;
+            stepSleepTime = SIMULATION_NORMAL_SPEED_SLEEP_TIME_IN_MS / 2;
             break;
         default:
             throw std::runtime_error("Unsupported simulation speed");

@@ -16,6 +16,7 @@ RouteSimulation::RouteSimulation()
     simulationState = std::make_shared<SimulationState>();
     finishCleaning = false;
     simulationThreadJoiner = std::make_shared<std::thread>(std::thread(&RouteSimulation::cleanSimulationThreads, this));
+    mtx = std::make_shared<std::mutex>();
 }
 
 RouteSimulation::~RouteSimulation()
@@ -66,7 +67,7 @@ void RouteSimulation::reset()
 {
     simulationState->setFinishedState(false);
     simulationState->setPauseState(false);
-    simulationState->resetSimulationTimer();
+    simulationState->resetTimer();
     planeBoard->getNextWaypointPoints()->clear();
     planeBoard->getReachedWaypoints()->clear();
     planeBoard->getToReachWaypoints()->clear();
@@ -76,13 +77,14 @@ void RouteSimulation::reset()
 
 void RouteSimulation::changeSpeed(const SimulationSpeed &simulationSpeed)
 {
-    simulationState->setSimulationStepSleepTime(simulationSpeed);
+    simulationState->setStepSleepTime(simulationSpeed);
 }
 
-WaypointsDequePtr RouteSimulation::generateFlightPlanAlternative()
+std::pair<WaypointsDequePtr, bool> RouteSimulation::generateFlightPlanAlternative()
 {
     LOG << "Generating flight plan alternative\n" << std::flush;
     planeBoard->getAlternativeWaypointsToReach()->clear();
+    std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     std::copy_if(planeBoard->getToReachWaypoints()->begin(),
               planeBoard->getToReachWaypoints()->end(),
               std::back_inserter(*planeBoard->getAlternativeWaypointsToReach()),
@@ -92,7 +94,9 @@ WaypointsDequePtr RouteSimulation::generateFlightPlanAlternative()
     });
     // Drawing alternative route logic will
     // (or already is if I forgot about this comment) be in GUI part.
-    return planeBoard->getAlternativeWaypointsToReach();
+    bool noWaypointsRemoved =
+            (planeBoard->getToReachWaypoints()->size() == planeBoard->getAlternativeWaypointsToReach()->size());
+    return std::make_pair(planeBoard->getAlternativeWaypointsToReach(), noWaypointsRemoved);
 }
 
 void RouteSimulation::acceptFlightPlanAlternative()
@@ -102,11 +106,9 @@ void RouteSimulation::acceptFlightPlanAlternative()
         throw std::runtime_error("Unable to accept alternative flight plan because there is none!");
     }
 
-
-
     // Tricky part. If during plan generation and accepting, plane reached waypoint we need to remove it from
     // the alternative points route
-    //std::lock_guard lock(mtx);
+    std::lock_guard<std::mutex> lock(*mtx);
     int numWaypointsToRemove = 0;
     for (auto &alternativeWaypoint : *planeBoard->getAlternativeWaypointsToReach())
     {
@@ -127,13 +129,20 @@ void RouteSimulation::acceptFlightPlanAlternative()
         planeBoard->getAlternativeWaypointsToReach()->pop_front();
     }
     planeBoard->getToReachWaypoints() = planeBoard->getAlternativeWaypointsToReach();
-    // TODO: Need to generate planeBoard->getNextWaypointPoints() if first waypoint changed
+
+    Waypoint currentPlanePosition = planeBoard->getPlane()->getPosition();
+    setNextWaypointRoutePoints(&currentPlanePosition);
     LOG << "Alternative flight plan accepted\n" << std::flush;
 }
 
 void RouteSimulation::rejectFlightPlanAlternative()
 {
     planeBoard->getAlternativeWaypointsToReach()->clear();
+}
+
+int RouteSimulation::getElapsedTime() const
+{
+    return simulationState->getExecutionTime();
 }
 
 //
@@ -147,7 +156,7 @@ void RouteSimulation::run()
     {
         executeStep();
         sleepTillNextStep();
-        simulationState->incrementSimulationExecutionTime();
+        simulationState->incrementExecutionTime();
         while(simulationState->isPaused())
         {
             // Sleep for short amount of time to lower cpu work
@@ -247,7 +256,7 @@ Waypoint *RouteSimulation::getLastVisitedWaypoint() const
 
 void RouteSimulation::executeStep()
 {
-    //std::lock_guard lock(mtx);
+    std::lock_guard<std::mutex> lock(*mtx);
     planeBoard->getVisitedPoints()->push_back(planeBoard->getPlane()->getPosition());
 
     Waypoint *nextRoutePoint = &planeBoard->getNextWaypointPoints()->at(0);
@@ -273,7 +282,7 @@ void RouteSimulation::executeStep()
         if (planeBoard->getToReachWaypoints()->empty())
         {
             simulationState->setFinishedState(true);
-            simulationState->resetSimulationTimer();
+            simulationState->resetTimer();
             LOG << "Plane landed successfully! Destination reached!\n" << std::flush;
         }
         else
@@ -285,7 +294,7 @@ void RouteSimulation::executeStep()
 
 void RouteSimulation::sleepTillNextStep() const
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(simulationState->getSimulationStepSleepTime()));
+    std::this_thread::sleep_for(std::chrono::milliseconds(simulationState->getStepSleepTime()));
 }
 
 void RouteSimulation::cleanSimulationThreads()
