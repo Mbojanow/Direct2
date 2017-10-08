@@ -21,12 +21,11 @@ class MainWindowApp : public QObject
     Q_OBJECT
 
 private:
-    static const int GRID_SIZE_MULTIPLIER = 5;
-    static const int GRID_SIDE_SIZE = GRID_SIZE_MULTIPLIER * PlaneBoard::BOARD_SIZE;
     static constexpr QSize COMMON_BUTTON_SIZE = QSize(200, 50);
 
     // widgets
     QWidget *mainWidget;
+    //TODO: change this QLabel to PlanBoardRenderArea
     QLabel *planeRouteMap;
     QPushButton *generateFlightPlanButton;
     QPushButton *runSimulationButton;
@@ -47,7 +46,7 @@ private:
     WaypointsDequePtr alternativeRouteWaypoints;
 
 public:
-    MainWindowApp();
+    MainWindowApp(QWidget *parent = nullptr);
     ~MainWindowApp();
 
     QWidget *getMainWidget() const;

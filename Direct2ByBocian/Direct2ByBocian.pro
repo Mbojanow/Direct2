@@ -32,7 +32,8 @@ SOURCES += \
     simulation/RouteSimulation.cpp \
     simulation/SimulationWaypointGenerator.cpp \
     simulation/SimulationState.cpp \
-    ui/MainWindowApp.cpp
+    ui/MainWindowApp.cpp \
+    ui/PlaneBoardRenderArea.cpp
 
 HEADERS += \
     ui/MainWindow.h \
@@ -46,7 +47,8 @@ HEADERS += \
     plane/Axis.h \
     simulation/SimulationState.h \
     simulation/SimulationInitalizationException.h \
-    ui/MainWindowApp.h
+    ui/MainWindowApp.h \
+    ui/PlaneBoardRenderArea.h
 
 SUBDIRS += \
     Direct2ByBocian.pro

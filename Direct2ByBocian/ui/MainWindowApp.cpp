@@ -4,7 +4,7 @@
 
 constexpr QSize MainWindowApp::COMMON_BUTTON_SIZE;
 
-MainWindowApp::MainWindowApp() : QObject()
+MainWindowApp::MainWindowApp(QWidget *parent) : QObject(parent)
 {
     initWidgets();
     setAppLayout();
@@ -125,8 +125,9 @@ void MainWindowApp::initWidgets()
 
 void MainWindowApp::initRouteMap()
 {
+    // TODO: replace Qlabel with PlaneBoardRenderArea
     planeRouteMap = new QLabel(mainWidget);
-    planeRouteMap->setFixedSize(GRID_SIDE_SIZE, GRID_SIDE_SIZE);
+    planeRouteMap->setFixedSize(550, 550);
 }
 
 void MainWindowApp::initButtons()
