@@ -6,9 +6,9 @@ constexpr QSize MainWindowApp::COMMON_BUTTON_SIZE;
 
 MainWindowApp::MainWindowApp(QWidget *parent) : QObject(parent)
 {
+    routeSimulation = std::make_shared<RouteSimulation>();
     initWidgets();
     setAppLayout();
-    routeSimulation = std::make_shared<RouteSimulation>();
     connectWidgets();
 }
 
@@ -106,6 +106,10 @@ void MainWindowApp::handleHalfSpeedChange(bool toggled)
 
 MainWindowApp::~MainWindowApp()
 {
+    if (planeBoardDrawingThread && planeBoardDrawingThread->joinable())
+    {
+        planeBoardDrawingThread->join();
+    }
     delete mainWidget;
 }
 
@@ -117,17 +121,17 @@ QWidget* MainWindowApp::getMainWidget() const
 void MainWindowApp::initWidgets()
 {
     mainWidget = new QWidget();
-    initRouteMap();
     initButtons();
     initSpeedCheckboxes();
     initLayout();
+    initRouteMap();
 }
 
 void MainWindowApp::initRouteMap()
 {
-    // TODO: replace Qlabel with PlaneBoardRenderArea
-    planeRouteMap = new QLabel(mainWidget);
-    planeRouteMap->setFixedSize(550, 550);
+    planeRouteMap = new PlaneBoardRenderArea(routeSimulation->getPlaneBoard(), mainWidget);
+    planeBoardDrawingThread = std::make_unique<std::thread>(std::thread(&MainWindowApp::updatePlaneBoardRenderArea, this));
+    planeBoardDrawingThread->detach();
 }
 
 void MainWindowApp::initButtons()
@@ -181,8 +185,8 @@ void MainWindowApp::initCommonPushButtonData(QPushButton *button, const QString 
 
 void MainWindowApp::setAppLayout()
 {
-    planeRouteMap->setText("ROUTE WILL BE DRAWN HERE");
     leftWindowSideLayout->addWidget(planeRouteMap);
+    //planeRouteMap->update();
 
     rightWindowSideLayout->addWidget(generateFlightPlanButton);
     rightWindowSideLayout->addWidget(runSimulationButton);
@@ -227,4 +231,17 @@ void MainWindowApp::connectWidgets()
 bool MainWindowApp::simulationStarted() const
 {
     return routeSimulation->getElapsedTime() > 0;
+}
+
+void MainWindowApp::updatePlaneBoardRenderArea()
+{
+    // TODO: make it thread safe
+    while(routeSimulation && !routeSimulation->getFinishedState())
+    {
+        if (planeRouteMap && planeRouteMap->shouldRender())
+        {
+            planeRouteMap->update();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
 }

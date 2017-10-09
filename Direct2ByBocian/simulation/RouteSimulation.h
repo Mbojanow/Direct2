@@ -23,6 +23,8 @@ public:
     RouteSimulation();
     ~RouteSimulation();
 
+    std::shared_ptr<PlaneBoard> getPlaneBoard() const;
+
     WaypointsDequePtr generateFlightPlan();
     void start();
     void pause();
@@ -34,6 +36,7 @@ public:
     void acceptFlightPlanAlternative();
     void rejectFlightPlanAlternative();
     int getElapsedTime() const;
+    bool getFinishedState() const;
 
 private:
     void run();

@@ -28,6 +28,11 @@ RouteSimulation::~RouteSimulation()
     }
 }
 
+std::shared_ptr<PlaneBoard> RouteSimulation::getPlaneBoard() const
+{
+    return planeBoard;
+}
+
 WaypointsDequePtr RouteSimulation::generateFlightPlan()
 {
     LOG << "Initializing simulation. Generating flight plan\n" << std::flush;
@@ -86,14 +91,15 @@ std::pair<WaypointsDequePtr, bool> RouteSimulation::generateFlightPlanAlternativ
     planeBoard->getAlternativeWaypointsToReach()->clear();
     std::srand(std::chrono::system_clock::now().time_since_epoch().count());
     std::copy_if(planeBoard->getToReachWaypoints()->begin(),
-              planeBoard->getToReachWaypoints()->end(),
+              planeBoard->getToReachWaypoints()->end() - 1,
               std::back_inserter(*planeBoard->getAlternativeWaypointsToReach()),
                  [](Waypoint &)
     {
         return ((std::rand() % 100 + 1.0 / 100.0) > NON_MANDATORY_PROBABILITY);
     });
-    // Drawing alternative route logic will
-    // (or already is if I forgot about this comment) be in GUI part.
+    // push last waypoint that should never be removed
+    planeBoard->getAlternativeWaypointsToReach()->push_back(planeBoard->getToReachWaypoints()->at(planeBoard->getToReachWaypoints()->size() - 1));
+
     bool noWaypointsRemoved =
             (planeBoard->getToReachWaypoints()->size() == planeBoard->getAlternativeWaypointsToReach()->size());
     return std::make_pair(planeBoard->getAlternativeWaypointsToReach(), noWaypointsRemoved);
@@ -106,11 +112,13 @@ void RouteSimulation::acceptFlightPlanAlternative()
         throw std::runtime_error("Unable to accept alternative flight plan because there is none!");
     }
 
+    // TODO: fixme...
+
     // Tricky part. If during plan generation and accepting, plane reached waypoint we need to remove it from
     // the alternative points route
     std::lock_guard<std::mutex> lock(*mtx);
-    int numWaypointsToRemove = 0;
-    for (auto &alternativeWaypoint : *planeBoard->getAlternativeWaypointsToReach())
+    /*int numWaypointsToRemove = 0;
+    for (auto alternativeWaypoint : *planeBoard->getAlternativeWaypointsToReach())
     {
         if (std::find(planeBoard->getToReachWaypoints()->begin(),
                       planeBoard->getToReachWaypoints()->end(),
@@ -123,14 +131,20 @@ void RouteSimulation::acceptFlightPlanAlternative()
             break;
         }
     }
+    LOG << numWaypointsToRemove << " waypoints will be removed\n" << std::flush;
 
     for (int waypointToRemoveIndex = 0; waypointToRemoveIndex < numWaypointsToRemove; waypointToRemoveIndex++)
     {
         planeBoard->getAlternativeWaypointsToReach()->pop_front();
-    }
-    planeBoard->getToReachWaypoints() = planeBoard->getAlternativeWaypointsToReach();
+    }*/
+    planeBoard->getToReachWaypoints()->clear();
+    std::copy(planeBoard->getAlternativeWaypointsToReach()->begin(),
+              planeBoard->getAlternativeWaypointsToReach()->end(),
+              std::back_inserter(*planeBoard->getToReachWaypoints()));
+    //planeBoard->getToReachWaypoints() = planeBoard->getAlternativeWaypointsToReach();
 
     Waypoint currentPlanePosition = planeBoard->getPlane()->getPosition();
+    planeBoard->getNextWaypointPoints()->clear();
     setNextWaypointRoutePoints(&currentPlanePosition);
     LOG << "Alternative flight plan accepted.\n" << std::flush;
 }
@@ -144,6 +158,11 @@ void RouteSimulation::rejectFlightPlanAlternative()
 int RouteSimulation::getElapsedTime() const
 {
     return simulationState->getExecutionTime();
+}
+
+bool RouteSimulation::getFinishedState() const
+{
+    return simulationState->isFinished();
 }
 
 //

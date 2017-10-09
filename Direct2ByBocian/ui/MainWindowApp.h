@@ -5,9 +5,12 @@
 #include <QGraphicsItem>
 
 #include <memory>
+#include <thread>
+#include <mutex>
 
 #include "plane/PlaneBoard.h"
 #include "simulation/RouteSimulation.h"
+#include "PlaneBoardRenderArea.h"
 
 /*
  * MainWindowApp Q_OBJECT class declaration.
@@ -25,8 +28,7 @@ private:
 
     // widgets
     QWidget *mainWidget;
-    //TODO: change this QLabel to PlanBoardRenderArea
-    QLabel *planeRouteMap;
+    PlaneBoardRenderArea *planeRouteMap;
     QPushButton *generateFlightPlanButton;
     QPushButton *runSimulationButton;
     QPushButton *pauseSimulationButton;
@@ -44,6 +46,8 @@ private:
 
     std::shared_ptr<RouteSimulation> routeSimulation;
     WaypointsDequePtr alternativeRouteWaypoints;
+
+    std::unique_ptr<std::thread> planeBoardDrawingThread;
 
 public:
     MainWindowApp(QWidget *parent = nullptr);
@@ -75,4 +79,6 @@ private:
     void connectWidgets();
 
     bool simulationStarted() const;
+
+    void updatePlaneBoardRenderArea();
 };
