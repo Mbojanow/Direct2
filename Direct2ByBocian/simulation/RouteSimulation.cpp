@@ -95,7 +95,8 @@ std::pair<WaypointsDequePtr, bool> RouteSimulation::generateFlightPlanAlternativ
               std::back_inserter(*planeBoard->getAlternativeWaypointsToReach()),
                  [](Waypoint &)
     {
-        return ((std::rand() % 100 + 1.0 / 100.0) > NON_MANDATORY_PROBABILITY);
+        const double notRemoveProbability = (std::rand() % 100 + 1.0) / 100.0;
+        return notRemoveProbability > NON_MANDATORY_PROBABILITY;
     });
     // push last waypoint that should never be removed
     planeBoard->getAlternativeWaypointsToReach()->push_back(planeBoard->getToReachWaypoints()->at(planeBoard->getToReachWaypoints()->size() - 1));
@@ -111,8 +112,6 @@ void RouteSimulation::acceptFlightPlanAlternative()
     {
         throw std::runtime_error("Unable to accept alternative flight plan because there is none!");
     }
-
-    // TODO: fixme...
 
     // Tricky part. If during plan generation and accepting, plane reached waypoint we need to remove it from
     // the alternative points route

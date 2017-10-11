@@ -23,6 +23,7 @@ private:
     static const QColor ROUTE_BEHIND_COLOR;
     static const QColor ROUTE_IN_FRONT_COLOR;
     static const QColor PURE_BLACK;
+    static const QColor PURE_RED;
     static const int WAYPOINT_CIRCLE_RADIUS = 2;
     // TODO : change it to triangle in the future
     static const int PLANE_CIRCLE_RADIUS = 5;
@@ -41,6 +42,7 @@ protected:
 public:
     PlaneBoardRenderArea(std::shared_ptr<PlaneBoard> planeBoard, QWidget *parent = nullptr);
     bool shouldRender() const;
+    static QPointF getPointOnMathTypeAxis(const QPointF &pointToSwap);
 
 private:
     void renderPlane(QPainter &painter);
