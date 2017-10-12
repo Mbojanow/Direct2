@@ -10,6 +10,7 @@ const QColor PlaneBoardRenderArea::ROUTE_BEHIND_COLOR = QColor(0, 0, 60);
 const QColor PlaneBoardRenderArea::ROUTE_IN_FRONT_COLOR = QColor(0, 130, 255);
 const QColor PlaneBoardRenderArea::PURE_BLACK = QColor(0, 0, 0);
 const QColor PlaneBoardRenderArea::PURE_RED = QColor(255, 0, 0);
+const QColor PlaneBoardRenderArea::PURE_YELLOW = QColor(255, 255, 0);
 
 
 void PlaneBoardRenderArea::paintEvent(QPaintEvent *)
@@ -54,56 +55,43 @@ void PlaneBoardRenderArea::renderRoadTraveled(QPainter &painter)
 
 void PlaneBoardRenderArea::renderRoadAhead(QPainter &painter)
 {
-    drawPolyline(planeBoard->getToReachWaypoints(), painter, ROUTE_IN_FRONT_COLOR);
-    if (!planeBoard->getToReachWaypoints()->empty())
-    {
-        connectWithPlane(planeBoard->getToReachWaypoints()->at(0),
-                        painter, ROUTE_IN_FRONT_COLOR);
-    }
-}
+    std::unique_ptr<std::vector<int>> overlapingWaypointIndexes = getOverlapingWaypointIndexesInRouteAhead();
 
-void PlaneBoardRenderArea::renderAlternativeRoute(QPainter &painter)
-{
-    if (planeBoard->getAlternativeWaypointsToReach()->size() == 0)
+    if (overlapingWaypointIndexes->empty())
     {
-        return;
-    }
-
-    pen = QPen();
-    pen.setColor(PURE_RED);
-    painter.setPen(pen);
-
-    // TODO: this logic needs to be divided into separate methods
-    std::vector<int> foundIndexes;
-    foundIndexes.reserve(planeBoard->getAlternativeWaypointsToReach()->size());
-    for (const Waypoint &waypoint : *planeBoard->getAlternativeWaypointsToReach())
-    {
-        auto pos = std::find(planeBoard->getToReachWaypoints()->begin() + foundIndexes.size(),
-                             planeBoard->getToReachWaypoints()->end(), waypoint);
-        foundIndexes.push_back(std::distance(planeBoard->getToReachWaypoints()->begin(), pos));
-    }
-
-    for (int waypointIndex = 0; waypointIndex < foundIndexes.size() - 1; waypointIndex++)
-    {
-        if (foundIndexes[0] != 0)
+        drawPolyline(planeBoard->getToReachWaypoints(), painter, ROUTE_IN_FRONT_COLOR);
+        if (!planeBoard->getToReachWaypoints()->empty())
         {
-            QPointF fromPoint = WaypointConverter::toQPointF(planeBoard->getPlane()->getPosition(),
-                                                             GRID_SIZE_MULTIPLIER);
-            QPointF toPoint = WaypointConverter::toQPointF(planeBoard->getToReachWaypoints()->at(foundIndexes[0]),
-                    GRID_SIZE_MULTIPLIER);
-            painter.drawLine(PlaneBoardRenderArea::getPointOnMathTypeAxis(fromPoint),
-                             PlaneBoardRenderArea::getPointOnMathTypeAxis(toPoint));
+            connectWithPlane(planeBoard->getToReachWaypoints()->at(0),
+                             painter, ROUTE_IN_FRONT_COLOR);
+        }
+    }
+    else
+    {
+        for (int idx = 0; idx < overlapingWaypointIndexes->size() - 1; idx++)
+        {
+            if (overlapingWaypointIndexes->at(idx + 1) - overlapingWaypointIndexes->at(idx) != 1)
+            {
+                drawLine(planeBoard->getToReachWaypoints()->at(overlapingWaypointIndexes->at(idx)),
+                         planeBoard->getToReachWaypoints()->at(overlapingWaypointIndexes->at(idx + 1)),
+                         painter, PURE_RED);
+
+                for (int idx2 = overlapingWaypointIndexes->at(idx); idx2 < overlapingWaypointIndexes->at(idx + 1); idx2++)
+                {
+                    drawLine(planeBoard->getToReachWaypoints()->at(idx2),
+                             planeBoard->getToReachWaypoints()->at(idx2 + 1), painter, PURE_YELLOW);
+                }
+            }
+            else
+            {
+                drawLine(planeBoard->getToReachWaypoints()->at(overlapingWaypointIndexes->at(idx)),
+                         planeBoard->getToReachWaypoints()->at(overlapingWaypointIndexes->at(idx + 1)),
+                         painter, ROUTE_IN_FRONT_COLOR);
+            }
         }
 
-        if (foundIndexes[waypointIndex + 1] - foundIndexes[waypointIndex] != 1)
-        {
-            QPointF fromPoint = WaypointConverter::toQPointF(planeBoard->getToReachWaypoints()->at(foundIndexes[waypointIndex]),
-                                                             GRID_SIZE_MULTIPLIER);
-            QPointF toPoint = WaypointConverter::toQPointF(planeBoard->getToReachWaypoints()->at(foundIndexes[waypointIndex + 1]),
-                    GRID_SIZE_MULTIPLIER);
-            painter.drawLine(PlaneBoardRenderArea::getPointOnMathTypeAxis(fromPoint),
-                             PlaneBoardRenderArea::getPointOnMathTypeAxis(toPoint));
-        }
+        QColor planeConnectionColor = overlapingWaypointIndexes->at(0) == 0 ? ROUTE_IN_FRONT_COLOR : PURE_YELLOW;
+        connectWithPlane(planeBoard->getToReachWaypoints()->at(overlapingWaypointIndexes->at(0)), painter, planeConnectionColor);
     }
 }
 
@@ -145,6 +133,17 @@ void PlaneBoardRenderArea::drawPolyline(WaypointsDequePtr points, QPainter &pain
     painter.drawPolyline(pointsToDraw.data(), pointsToDraw.size());
 }
 
+void PlaneBoardRenderArea::drawLine(const Waypoint &waypointA, const Waypoint &waypointB, QPainter &painter, const QColor &color)
+{
+    pen = QPen();
+    pen.setColor(color);
+    painter.setPen(pen);
+    QPointF pointA = WaypointConverter::toQPointF(waypointA, GRID_SIZE_MULTIPLIER);
+    QPointF pointB = WaypointConverter::toQPointF(waypointB, GRID_SIZE_MULTIPLIER);
+    painter.drawLine(PlaneBoardRenderArea::getPointOnMathTypeAxis(pointA),
+                     PlaneBoardRenderArea::getPointOnMathTypeAxis(pointB));
+}
+
 void PlaneBoardRenderArea::connectWithPlane(const Waypoint &waypoint, QPainter &painter, const QColor &color)
 {
     QPointF planePosition = WaypointConverter::toQPointF(planeBoard->getPlane()->getPosition(), GRID_SIZE_MULTIPLIER);
@@ -160,6 +159,19 @@ void PlaneBoardRenderArea::drawPlaneBoardStatus(QPainter &painter)
     renderPlane(painter);
     renderRoadAhead(painter);
     renderRoadTraveled(painter);
-    renderAlternativeRoute(painter);
     renderWaypoints(painter);
+}
+
+std::unique_ptr<std::vector<int> > PlaneBoardRenderArea::getOverlapingWaypointIndexesInRouteAhead() const
+{
+    std::unique_ptr<std::vector<int>> overlapingWaypointIndexes = std::make_unique<std::vector<int>>();
+    overlapingWaypointIndexes->reserve(planeBoard->getAlternativeWaypointsToReach()->size());
+
+    for (const Waypoint &waypoint : *planeBoard->getAlternativeWaypointsToReach())
+    {
+        auto positionIt = std::find(planeBoard->getToReachWaypoints()->begin() + overlapingWaypointIndexes->size(),
+                                    planeBoard->getToReachWaypoints()->end(), waypoint);
+        overlapingWaypointIndexes->push_back(std::distance(planeBoard->getToReachWaypoints()->begin(), positionIt));
+    }
+    return std::move(overlapingWaypointIndexes);
 }

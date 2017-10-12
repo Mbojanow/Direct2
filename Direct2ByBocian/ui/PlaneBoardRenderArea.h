@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QColor>
 #include <memory>
+#include <vector>
 
 #include "plane/PlaneBoard.h"
 
@@ -24,6 +25,7 @@ private:
     static const QColor ROUTE_IN_FRONT_COLOR;
     static const QColor PURE_BLACK;
     static const QColor PURE_RED;
+    static const QColor PURE_YELLOW;
     static const int WAYPOINT_CIRCLE_RADIUS = 2;
     // TODO : change it to triangle in the future
     static const int PLANE_CIRCLE_RADIUS = 5;
@@ -48,13 +50,13 @@ private:
     void renderPlane(QPainter &painter);
     void renderRoadTraveled(QPainter &painter);
     void renderRoadAhead(QPainter &painter);
-    void renderAlternativeRoute(QPainter &painter);
     void renderWaypoints(QPainter &painter);
     void renderWaypoints(QPainter &painter, WaypointsDequePtr waypoints);
 
     void drawPolyline(WaypointsDequePtr points, QPainter &painter, const QColor &color);
+    void drawLine(const Waypoint &waypointA, const Waypoint &waypointB, QPainter &painter, const QColor &color);
     void connectWithPlane(const Waypoint &waypoint, QPainter &painter, const QColor &color);
     void drawPlaneBoardStatus(QPainter &painter);
 
-
+    std::unique_ptr<std::vector<int>> getOverlapingWaypointIndexesInRouteAhead() const;
 };
